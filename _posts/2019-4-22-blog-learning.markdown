@@ -1,7 +1,7 @@
 ---
 layout:     post
-title:      "Vue Learning"
-subtitle:   " \"Vue learning\""
+title:      "Bolg Learning"
+subtitle:   " \"blog learning\""
 date:       2019-04-22 18:23:00
 author:     "王琼弟"
 catalog: true

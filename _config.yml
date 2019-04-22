@@ -4,7 +4,7 @@ SEOTitle: 谋莽台的博客 | 谋莽台的博客
 header-img: img/home-bg.jpg
 email: 1421311452@qq.com
 description: ""
-keyword: ""
+keyword: "wqd,王琼弟,琼弟,moumangtai,MouMangTai,谋莽台,博客, 个人网站, 互联网, Web, JavaScript, 前端, 设计"
 url: "https://moumangtai.com"              # your host, for absolute URL
 baseurl: ""                             # for example, '/blog' if your blog hosted on 'host/blog'
 
@@ -14,9 +14,9 @@ future: true
 # SNS settings
 RSS: false
 weibo_username:     5087989660
-zhihu_username:     
+zhihu_username:     MoumangTaii
 github_username:    MouMangTai
-twitter_username: 
+twitter_username:   
 leetcode_username:   王琼弟
 #facebook_username:  huxpro
 #linkedin_username:  firstname-lastname-idxxxx
@@ -72,8 +72,8 @@ netease_comment: false
 # ba_track_id: [your track id]
 
 # Google Analytics
-ga_track_id: 'UA-49627206-1'            # Format: UA-xxxxxx-xx
-ga_domain: huangxuan.me
+# ga_track_id: 'UA-49627206-1'            # Format: UA-xxxxxx-xx
+# ga_domain: huangxuan.me
 
 
 
@@ -100,13 +100,13 @@ service-worker: true
 page-mathjax: false
 
 #Compent
-gitment:
-  enable: true
-  githubID: MouMangTai
-  repo: moumangtai.github.io
-  ClientID: f89983df1c48343be6e4
-  ClientSecret: be7b2ef957b869d423eec8f247ff35ce654acbb7
-  lazy: true
+#gitment:
+#  enable: true
+ # githubID: MouMangTai
+ # repo: moumangtai.github.io
+ # ClientID: f89983df1c48343be6e4
+ # ClientSecret: be7b2ef957b869d423eec8f247ff35ce654acbb7
+ # lazy: tru
     
 
 # Friends
