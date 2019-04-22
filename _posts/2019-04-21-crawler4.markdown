@@ -1,0 +1,46 @@
+---
+layout:     post
+title:      "The fourth day of Crawler learning"
+subtitle:   " \"Crawler learning\""
+date:       2019-04-21 19:09:00
+author:     "王琼弟"
+catalog: true
+tags:
+    - python
+    - 爬虫爬取
+---
+
+#### 爬取[58同城](https://qd.58.com/diannao/35200617992782x.shtml)
+
+```python
+from bs4 import BeautifulSoup
+import requests
+url = "https://qd.58.com/diannao/35200617992782x.shtml"
+web_data = requests.get(url)
+soup = BeautifulSoup(web_data.text, 'lxml')
+
+title = soup.title.text
+cost = soup.select("div#basicinfo span.infocard__container__item__main__text--price")
+time = soup.select(".detail-title__info__text:nth-child(1)")
+visitor = soup.select("span#totalcount")
+area = soup.select("div.infocard__container__item:nth-child(3)>div.infocard__container__item__main")
+who = soup.select("div.infocard__container__item:nth-child(4)>div.infocard__container__item__main")
+data = {
+    "title": title,
+    "cost": cost[0].get_text().strip(),
+    "time": time[0].get_text().strip(),
+    "area": list(area[0].stripped_strings),
+    "who": who[0].get_text().strip(),
+    "visitor": visitor[0].get_text().strip()
+}
+print(data)
+```
+
+```python
+{'title': '现货400多台液晶电脑,低价出售,保修一年,可送货,李村附近,需要请联系! - 青岛58同城', 'cost': '350 元', 'time': '2018-08-23 发布', 'area': ['李沧', '-', '李村'], 'who': '李先生', 'visitor': '0'}
+```
+
+#### 使用mongoDB
+
+下载地址：https://www.mongodb.com/dr/fastdl.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-4.0.9.zip/download
+

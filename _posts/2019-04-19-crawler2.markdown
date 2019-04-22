@@ -1,0 +1,137 @@
+---
+layout:     post
+title:      "The second day of Crawler learning"
+subtitle:   " \"Crawler learning\""
+date:       2019-04-19 07:50:00
+author:     "王琼弟"
+catalog: true
+tags:
+    - python
+    - 爬虫
+---
+
+
+
+### 用BeatuifulSoup和Requests爬取[猫途鹰网](https://www.tripadvisor.cn/)
+
+
+
+#### 服务器与本地的交换机制
+
+我们每次浏览网页都是再向网页所在的服务器发送一个Request，然后服务器接受到Request后返回Response给网页。
+
+##### Request
+
+当前Http1.1版本共有get、post、head、put、options、connect、trace、delete共八种发送请求的方式。不过不需要全部记住，目前最常用的为get和post。
+
+##### Response
+
+我们会在Response中得到服务器返回给我们的信息，例如status_code为304或200则表示访问网页成功。
+
+##### 可能会发生的问题：
+
+403问题：在我用urlopen打开TripAdvisor准备访问页面时，我的请求没有设置其他参数，该网页的服务器获取不到我发送请求的浏览器，操作系统等等一些信息，服务器会将这次访问视为非正常访问，这是很多网站都具有的反爬虫机制。
+
+解决方法：
+
+```python
+url = "https://www.tripadvisor.cn/"
+wb_data = requests.get(url)
+Soup = BeautifulSoup(wb_data.text, "lxml")
+```
+
+#### 爬取[猫途鹰网](https://www.tripadvisor.cn/)
+
+##### 爬取基本信息
+
+```python
+# 爬取猫途鹰
+url = "https://www.tripadvisor.cn/"
+wb_data = requests.get(url)
+Soup = BeautifulSoup(wb_data.text, "lxml")
+# Soup = BeautifulSoup(urlopen("https://www.tripadvisor.cn/"), "lxml")
+images = Soup.select("#popularDestinations > div.section > ul.regionContent > li.active > ul > li > a > span.thumbCrop > img")
+nations = Soup.select("#popularDestinations > div.section > ul.regionContent > li.active > ul > li > div.title > a.countryName")
+locations = Soup.select("#popularDestinations > div.section > ul.regionContent > li.active > ul > li > div.title > a.cityName")
+messages = Soup.select("#popularDestinations > div.section > ul.regionContent > li.active > ul > li > div.counts > span.attractionCount > a")
+tags = Soup.select("div.popIcons")
+
+Info = []
+for image, nation, location, message, tag in zip(images, nations, locations, messages, tags):
+    data = {
+        "image": image.get("src"),
+        "nation": nation.get_text(),
+        "location": location.get_text(),
+        "message": message.get_text(),
+        "tag": list(tag.stripped_strings)
+    }
+    Info.append(data)
+    print(data)
+```
+
+```python
+{'image': 'https://ccm.ddcdn.com/ext/photo-s/03/9b/30/02/phuket.jpg', 'nation': '泰国', 'location': '普吉岛', 'message': '景点 1917', 'tag': ['游记', '指南']}
+{'image': 'https://ccm.ddcdn.com/ext/photo-s/03/9b/2d/ad/bangkok.jpg', 'nation': '泰国', 'location': '曼谷', 'message': '景点 2700', 'tag': ['游记', '指南']}
+{'image': 'https://ccm.ddcdn.com/ext/photo-b/1280x250/03/9b/2d/c0/chiang-mai.jpg', 'nation': '泰国', 'location': '清迈', 'message': '景点 1337', 'tag': ['游记', '指南']}
+.......
+```
+
+##### 伪造Cookie爬取需要登陆才能获取到的信息
+
+暂时不知道怎么用，无论加不加都能爬取的到。。。。。。。。。。先记录一下
+
+以https://www.tripadvisor.cn/TravelMapHome为例子
+
+构造向服务器提交的参数：headers
+
+这些数据在你已登陆的页面的Request headers下都能找到，我们便是仿照这个Cookie告诉服务器我们已经登陆，以此跳过登陆环节，直接爬取。
+
+#### 爬取[赛欢网](https://www.saihuan.net/)
+
+目标解析赛欢网的各种比赛的分类，并组成三层一对多的列表。
+
+![](https://github.com/MouMangTai/moumangtai.github.io/blob/master/img/saihuan.jpg?raw=true)
+
+##### 获取第一层主分类(topType)
+
+```python
+tops = soup.select("#wp > div > div.w1180 > div > ul > li > h5 > span > a")
+for top in tops:
+    data = {
+        "top" : top.get_text()
+    }
+    print(data)
+```
+
+```python
+{'top': '基础学科类'}{'top': '创业商业类'}{'top': '科技创新类'}{'top': '数学建模类'}{'top': '平面艺术类'}{'top': '游戏动漫类'}{'top': '志愿活动类'}{'top': '地区竞赛类'}
+```
+
+##### 获取第二层分类(middleType)
+
+由于第一层分类和第二层分类之间具有一对多的关系，我们需要找到一片区域将一对多中的多打包起来，例如科技创新类下有多个二层分类(都在class为nexinnercontents的div下),我们便可以获取class为portal_block_summary的div(里面包含多个二层分类)将其打包。
+
+![](https://github.com/MouMangTai/moumangtai.github.io/blob/master/img/type.jpg?raw=true)
+
+```python
+url = "https://www.saihuan.net/"
+soup = BeautifulSoup(urlopen(url), "lxml")
+tops = soup.select("#wp > div > div.w1180 > div > ul > li > h5 > span > a")
+middles = soup.select("div.portal_block_summary")
+for top, middle in zip(tops, middles):
+    data = {
+        "top": top.get_text(),
+        "middle": list(middle.stripped_strings)
+    }
+    print(data)
+```
+
+```python
+{'top': '基础学科类', 'middle': ['基础学科', '数学', '物理', '化学', '化工', '力学', '地理', '医学']}
+{'top': '创业商业类', 'middle': ['创业商业', '创业', '商业', '电商', '互联网+', '策划营销', '策划', '销售', '营销', '市场', '案例']}
+......
+```
+
+这时候第二层分类虽然已经打包进来了，但是发现第三层的分类也被打包进来了，原因在于第三层分类都在class为nexinnertxts的div中，也在刚刚的打包范围内。
+
+不会了。。。不搞了

@@ -1,0 +1,143 @@
+---
+layout:     post
+title:      "The third day of Crawler learning"
+subtitle:   " \"Crawler learning\""
+date:       2019-04-20 16:45:00
+author:     "王琼弟"
+catalog: true
+tags:
+    - python
+    - 爬虫
+---
+
+#### 连续爬取多页数据
+
+分析每一页url的关联找出联系
+
+例如[虎扑](https://voice.hupu.com/nba/1)
+
+第一页：https://voice.hupu.com/nba/1
+
+第二页：https://voice.hupu.com/nba/2
+
+第三页：https://voice.hupu.com/nba/3......
+
+```python
+urls = ["https://voice.hupu.com/nba/{}".format(str(i)) for i in range(1, 30, 1)]
+print(urls)
+```
+
+这样就获得了30页的url
+
+```python
+['https://voice.hupu.com/nba/1', 'https://voice.hupu.com/nba/2', 'https://voice.hupu.com/nba/3', 'https://voice.hupu.com/nba/4', 'https://voice.hupu.com/nba/5' ......]
+```
+
+在做连续爬取之前还需要做一些事，防止一些网站具有反爬取机制封了你的id。
+
+一般的操作就是让机器模仿人类的访问形式，正常机器访问动不动就是每秒成百上千次，是个人检测一下都知道你是爬虫了，所以我们让机器每隔两秒爬取一次就能模仿人类的访问规律，来达到浑水摸鱼，偷天换日啦啦啦啦啦
+
+然后我们导入time库，在爬取过程中执行sleep函数，为了安全起见我设置成了3秒
+
+```python
+urls = ["https://voice.hupu.com/nba/{}".format(str(i)) for i in range(1, 30, 1)]
+def get_hupu(url):
+    soup = BeautifulSoup(urlopen(url), 'lxml')
+    time.sleep(3)
+    names = soup.select("body > div.hp-wrap > div.voice-main > div.news-list > ul > li > div.list-hd > h4 > a")
+    froms = soup.select("body > div.hp-wrap > div.voice-main > div.news-list > ul > li > div.otherInfo > span.other-left > span > a")
+    for name, fromd in zip(names, froms):
+        data = {
+            "name": name.get_text(),
+            "froms": fromd.get_text()
+        }
+        print(data)
+for single_url in urls:
+    get_hupu(single_url)
+```
+
+简单的就完成了。
+
+#### 练习爬取[小猪网](https://www.xiaozhu.com/)
+
+```python
+from bs4 import BeautifulSoup
+import requests
+import time
+
+
+headers = {
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36",
+    "cookie":"abtest_ABTest4SearchDate=b; gr_user_id=575e77db-5439-4516-a280-090df337f0b8; 59a81cc7d8c04307ba183d331c373ef6_gr_session_id=f9fb54b0-1b93-4224-8af5-a70f0884e2f3; 59a81cc7d8c04307ba183d331c373ef6_gr_last_sent_sid_with_cs1=f9fb54b0-1b93-4224-8af5-a70f0884e2f3; 59a81cc7d8c04307ba183d331c373ef6_gr_last_sent_cs1=N%2FA; 59a81cc7d8c04307ba183d331c373ef6_gr_session_id_f9fb54b0-1b93-4224-8af5-a70f0884e2f3=true; grwng_uid=f5b73ce1-bdb6-4d78-8f60-74319f032fe3; xzuuid=bb1b9aaa; TY_SESSION_ID=ec1f581b-5e84-4c68-8be3-845bc54f9e7e; startDate=2019-04-20; endDate=2019-04-21; xz_guid_4se=6e96f748-c8b1-44a2-9eec-be586cf5d250; haveapp=1; openappled=1"
+}
+urls = ["http://bj.xiaozhu.com/search-duanzufang-p{}-0/?startDate=2019-04-20&endDate=2019-04-21".format(str(i)) for i in range(1, 30, 1)]
+def get_xiaozhu(url):
+    web_data = requests.get(url, headers=headers)
+    time.sleep(3)
+    soup = BeautifulSoup(web_data.text, 'lxml')
+    images = soup.select("#page_list > ul > li > a > img")
+    titles = soup.select("#page_list > ul > li > div.result_btm_con.lodgeunitname > div.result_intro > a > span")
+    costs = soup.select("#page_list > ul > li > div.result_btm_con.lodgeunitname > div:nth-child(1) > span > i")
+    for image, title, cost in zip(images, titles, costs):
+        data = {
+            "image": image.get("src"),
+            "title": title.get_text(),
+            "cost": cost.get_text()
+        }
+        print(data)
+for url in urls:
+    get_xiaozhu(url)
+```
+
+```python
+{'image': '../images/lazy_loadimage.png', 'title': '立水桥5/13号线鸟巢奥森清新宜人两居室', 'cost': '488'}
+{'image': '../images/lazy_loadimage.png', 'title': '凯乐公寓.4号线星光影视城温馨复式lfto', 'cost': '388'}
+{'image': '../images/lazy_loadimage.png', 'title': '近北京南站角门东4号线88平米阳光大床房整租', 'cost': '599'}
+{'image': '../images/lazy_loadimage.png', 'title': '凯乐公寓.4号线星光影视城温馨复式lfto', 'cost': '358'}
+{'image': '../images/lazy_loadimage.png', 'title': '北京西站欢乐谷Loft温馨绿叶小屋', 'cost': '498'}
+{'image': '../images/lazy_loadimage.png', 'title': '独立公寓一居亚运村鸟巢水立方国家会议中心', 'cost': '388'}
+{'image': '../images/lazy_loadimage.png', 'title': '商务标准大床房', 'cost': '358'}
+{'image': '../images/lazy_loadimage.png', 'title': '百子湾 ，三里屯，国贸，欢乐谷时尚浪漫小屋', 'cost': '498'}
+.......
+```
+
+#### 使用爬虫抓取网站异步加载数据
+
+什么是异步加载：异步加载就是在执行过程同时加载，通常会使图片之类重要性较次的东西，可以先忽略掉，比如网页游戏经常会在玩的过程中，玩家都是黑影（未加载图形，由其他黑影模型代替），如果另一个线程完成加载了，在贴上去，就是异步。
+
+类似新浪微博的评论系统，we heart it网站等等
+
+如何抓取异步加载
+
+在调试台点击Network下的XHR，这里面显示的就是网页加载ajax请求后返回的参数，通过对Request URL的分析找出规律就能异步加载数据。
+
+![](https://github.com/MouMangTai/moumangtai.github.io/blob/master/img/heart.jpg?raw=true)
+
+#### 练习爬取We Heart It页面的图片并保存到本地
+
+首先保存图片到本地
+
+```python
+def save_img(img_url,file_name):
+    request.urlretrieve(img_url, file_name)
+```
+
+通过分析发现每个页面的url为https://weheartit.com/recent?scrolling=true&page={}里的值分别为1，2，3......这就是需要爬取的页面
+
+然后保存图片的名称取路径名称的后4位即可区分，为了避免重复还可以扩大名称的选取
+
+```python
+def download_weheartit(url):
+    web_data = requests.get(url)
+    soup = BeautifulSoup(web_data.text, 'lxml')
+    images = soup.select("body > div > div > div > a > img")
+    for i in images:
+        file_name = "C:/Users/Y/Desktop/img_path/{}.jpg".format(i.get("src")[-4:])
+        save_img(i.get("src"), file_name)
+        print(i.get("src"))
+download_weheartit("https://weheartit.com/recent?scrolling=true&page=1")
+```
+
+![](https://github.com/MouMangTai/moumangtai.github.io/blob/master/img/picture.jpg?raw=true)
+
+I feeling good~~ ~~ ~~

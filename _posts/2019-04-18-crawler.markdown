@@ -1,0 +1,124 @@
+---
+layout:     post
+title:      "The first day of Crawler learning"
+subtitle:   " \"Crawler learning\""
+date:       2019-04-18 21:12:00
+author:     "王琼弟"
+catalog: true
+tags:
+    - python
+    - 爬虫
+---
+
+#### 使用BeautifulSoup解析网页
+
+Soup = BeautifulSoup(urlopen(html),'lxml')
+
+Soup为汤，html为食材，lxml为菜谱
+
+```python
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+Soup = BeautifulSoup(urlopen("http://moumangtai.com/"), "lxml")
+```
+
+
+
+#### 描述要爬取的东西在哪
+
+选择要爬取的页面进行检查或按F12可以调出网页的源代码，对要爬取的部分可以选择copy，以当前博客首页大标题为例
+
+copy select：body > header > div > div > div > div > h1
+
+copy Xpath：/html/body/header/div/div/div/div/h1
+
+两者区别在与select多了css样式,但是我们BeautifulSoup只认识copy select ,而Xpath则用于其他库
+
+以[我的博客](http://moumangtai.com/)为例,来获取大标题和副标题的信息
+
+```python
+title = Soup.select("body > header > div > div > div > div > h1")
+subtitle = Soup.select("body > header > div > div > div > div > span")
+print(title)
+print(subtitle)
+```
+
+结果为:
+
+```
+[<h1>QiongDi.W Blog</h1>]
+[<span class="subheading">我干了什么 究竟拿了时间换了什么</span>]
+```
+
+再例如每篇文章的标题
+
+copy select：body > div > div > div.col-lg-8.col-lg-offset-1.col-md-8.col-md-offset-1.col-sm-12.col-xs-12.postlist-container > div:nth-child(1) > a > h2
+
+去掉div:nth-child(1)中的筛选后则能爬取相同一类的数据
+
+```
+[<h2 class="post-title">
+一日算法
+</h2>, <h2 class="post-title">
+公共地点人流量计算的云监管平台
+</h2>, <h2 class="post-title">
+Hello MyBlog
+</h2>]
+```
+
+
+
+#### 从标签中获得你要的信息
+
+通过调用get_text()即可获取标签内的文本，对于一类数据可以通过for循环获取
+
+```python
+for stitle in sontitle:
+    print(stitle.get_text())
+```
+
+如果为图片则获取图片的src，即get("src")
+
+#### 对获取到的信息进行整合
+
+假设获取每一篇文章的所有信息
+
+```python
+titles = Soup.select("body > div > div > div.col-lg-8.col-lg-offset-1.col-md-8.col-md-offset-1.col-sm-12.col-xs-12.postlist-container > div > a > h2")
+subtitles = Soup.select("body > div > div > div.col-lg-8.col-lg-offset-1.col-md-8.col-md-offset-1.col-sm-12.col-xs-12.postlist-container > div > a > h3")
+# contents = Soup.select("body > div > div > div.col-lg-8.col-lg-offset-1.col-md-8.col-md-offset-1.col-sm-12.col-xs-12.postlist-container > div > a > div")
+messages = Soup.select("body > div > div > div.col-lg-8.col-lg-offset-1.col-md-8.col-md-offset-1.col-sm-12.col-xs-12.postlist-container > div > p")
+info = []
+for title, subtitle, message in zip(titles, subtitles, messages):
+    data = {
+        "title": title.get_text().strip(),
+        "subtitle": subtitle.get_text().strip(),
+        # "content": content.get_text().strip(),
+        "message": message.get_text().strip()
+    }
+    print(data)
+    info.append(data)
+```
+
+得到结果：
+
+```python
+{'title': '一日算法', 'subtitle': '"Daily algorithm"', 'message': 'Posted by 王琼弟 on April 18, 2019'}
+{'title': '公共地点人流量计算的云监管平台', 'subtitle': '"Cloud Monitoring Platform for Human Flow Computing in Public Places"', 'message': 'Posted by 王琼弟 on April 18, 2019'}
+{'title': 'Hello MyBlog', 'subtitle': '"Hello World, Hello Blog"', 'message': 'Posted by 王琼弟 on April 17, 2019'}
+```
+
+当一个父节点下有多个子节点而我们需要获取所有的子节点的时候，我们应先爬取他的父节点，然后利用list{父节点.stripped_strings}实现多对一的逻辑获得一个子节点的列表 ps:stripped_strings可以理解为高级的text，可以去除掉所有多余的部分，返回干净的文本信息
+
+#### 筛选信息
+
+```python
+for i in list:
+    if i["title"]=="Hello MyBlog":
+        print(i)
+```
+
+```python
+{'title': 'Hello MyBlog', 'subtitle': '"Hello World, Hello Blog"', 'message': 'Posted by 王琼弟 on April 17, 2019'}
+```
+
