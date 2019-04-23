@@ -58,7 +58,7 @@ with open(path, "r") as f:
         print(data)
 ```
 
-```json
+```python
 {'index': 0, 'message': 'sad', 'num': 3}
 {'index': 1, 'message': 'sdadasda', 'num': 8}
 {'index': 2, 'message': 'asdsad', 'num': 6}
@@ -88,7 +88,7 @@ for item in sheet1.find():
     print(item)
 ```
 
-```json
+```python
 {'_id': ObjectId('5cbe7d5a0cc48d12680ac2fa'), 'index': 413, 'words': 187, 'message': "Within a few miles of Keswick, we passed along at the foot of Saddleback, and by the entrance of the Vale of St. John, and down the valley, on one of the slopes, we saw the Enchanted Castle. Thence we drove along by the course of the Greta, and soon arrived at Keswick, which lies at the base of Skiddaw, and among a brotherhood of picturesque eminences, and is itself a compact little town, with a market-house, built of the old stones of the Earl of Derwentwater's ruined castle, standing in the centre,—the principal street forking into two as it passes it. We alighted at the King's Arms, and went in search of Southey's residence, which we found easily enough, as it lies just on the outskirts of the town. We inquired of a group of people, two of whom, I thought, did not seem to know much about the matter; but the third, an elderly man, pointed it out at once,—a house surrounded by trees, so as to be seen only partially, and standing on a little eminence, a hundred yards or so from the road."}
 ......
 ```

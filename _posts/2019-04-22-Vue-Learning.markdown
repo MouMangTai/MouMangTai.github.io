@@ -14,7 +14,7 @@ tags:
 
 导入js:<https://cdn.staticfile.org/vue/2.2.2/vue.min.js>
 
-```javascript
+```python
 	<div id="app">
 		{{message}}
 	</div>
@@ -32,7 +32,7 @@ tags:
 
 v-for="(value,key,index) in Object" 参数顺序为值，键，索引。
 
-```javascript
+```python
 	<div id="app">
 		<li v-for="(value,key,index) in Object">
 			{{index}}:{{key}}:{{value}}
