@@ -1,0 +1,107 @@
+---
+layout:     post
+title:      "The fifth day of Crawler learning"
+subtitle:   " \"Crawler learning\""
+date:       2019-04-23 08:15:00
+author:     "王琼弟"
+catalog: true
+tags:
+    - python
+    - 爬虫爬取
+---
+
+#### 使用mongoDB
+
+下载地址：https://www.mongodb.com/dr/fastdl.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-4.0.9.zip/download
+
+百度链接：<https://pan.baidu.com/s/1xhFsENTVvU-tnjK9ODJ7Ag> 密码：ctyy
+
+#### mongoDB的安装
+
+https://www.cnblogs.com/iamluoli/p/9254899.html
+
+#### 可视化Robo3T
+
+下载：https://robomongo.org/
+
+#### 安装pymongo
+
+利用anacode安装whl:https://www.lfd.uci.edu/~gohlke/pythonlibs/#pymonge
+
+#### 创建数据库和表单
+
+```python
+import pymongo
+# 创建本地环境的mongo
+client = pymongo.MongoClient('localhost', 27017)
+# 给数据库起名 前面的walden为python环境里的名称，后面的walden为数据库的名称
+# 两者建议为同一值方便操作
+walden = client["walden"]
+# 在文件下创建表单
+sheet1 = walden["sheet1"]
+```
+
+#### 读取文件信息
+
+```python
+# 读取文件
+path = "C:/Users/Y/Desktop/sheet1.txt"
+with open(path, "r") as f:
+    lines = f.readlines()
+    # enumerate 可同时获取列表中的数据和数据下标
+    for index,line in enumerate(lines):
+        data = {
+            "index": index,
+            "message": line.strip(),
+            "num": len(line.strip())
+        }
+        print(data)
+```
+
+```json
+{'index': 0, 'message': 'sad', 'num': 3}
+{'index': 1, 'message': 'sdadasda', 'num': 8}
+{'index': 2, 'message': 'asdsad', 'num': 6}
+```
+
+#### 写入数据库
+
+遇到的问题：pymongo.errors.ServerSelectionTimeoutError: localhost:27017: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+由于没有启动本地的MongoDB服务引起。
+
+以管理员的身份打开cmd 输入net start MongoDB
+
+显示MongoDB 服务正在启动 ..
+MongoDB 服务已经启动成功。即可。
+
+然后插入数据
+
+```python
+sheet1.insert_one(data)
+```
+
+#### 展示数据库中的数据
+
+```python
+for item in sheet1.find():
+    print(item)
+```
+
+```json
+{'_id': ObjectId('5cbe7d5a0cc48d12680ac2fa'), 'index': 413, 'words': 187, 'message': "Within a few miles of Keswick, we passed along at the foot of Saddleback, and by the entrance of the Vale of St. John, and down the valley, on one of the slopes, we saw the Enchanted Castle. Thence we drove along by the course of the Greta, and soon arrived at Keswick, which lies at the base of Skiddaw, and among a brotherhood of picturesque eminences, and is itself a compact little town, with a market-house, built of the old stones of the Earl of Derwentwater's ruined castle, standing in the centre,—the principal street forking into two as it passes it. We alighted at the King's Arms, and went in search of Southey's residence, which we found easily enough, as it lies just on the outskirts of the town. We inquired of a group of people, two of whom, I thought, did not seem to know much about the matter; but the third, an elderly man, pointed it out at once,—a house surrounded by trees, so as to be seen only partially, and standing on a little eminence, a hundred yards or so from the road."}
+......
+```
+
+发现其中被自动添加了一个键名为id的键值对，是mongoDb自带的数据索引，防止数据重复。
+
+或者利用可视化数据库Robo展示或Mongo Explorer展示，就不一一赘述。
+
+#### 筛选功能
+
+```python
+# $lt/$lte/$gt/$gte/$ne 依次等价于< ， <= ， > ， >= ， !=
+for item in sheet1.find({"words": {"$lt":5}}):
+    print(item)
+```
+

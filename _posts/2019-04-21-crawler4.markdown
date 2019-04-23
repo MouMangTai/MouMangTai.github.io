@@ -40,7 +40,5 @@ print(data)
 {'title': '现货400多台液晶电脑,低价出售,保修一年,可送货,李村附近,需要请联系! - 青岛58同城', 'cost': '350 元', 'time': '2018-08-23 发布', 'area': ['李沧', '-', '李村'], 'who': '李先生', 'visitor': '0'}
 ```
 
-#### 使用mongoDB
 
-下载地址：https://www.mongodb.com/dr/fastdl.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-4.0.9.zip/download
 
