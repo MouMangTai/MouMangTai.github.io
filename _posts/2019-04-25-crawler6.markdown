@@ -1,0 +1,71 @@
+---
+layout:     post
+title:      "The sixth day of Crawler learning"
+subtitle:   " \"Crawler learning\""
+date:       2019-04-25 21:57:00
+author:     "王琼弟"
+catalog: true
+tags:
+    - python
+    - 爬虫爬取
+---
+
+#### 爬取[我爱竞赛网](http://www.52jingsai.com/portal.php)的大量数据
+
+首先获取每一种比赛信息的分类链接
+
+![](https://github.com/MouMangTai/moumangtai.github.io/blob/master/img/crawler6-1.jpg?raw=true)
+
+```python
+def get_type_url(url):
+    web_data = requests.get(web_url)
+    soup = BeautifulSoup(web_data.text, 'lxml')
+    types = soup.select("#mn_P1_menu li a")
+    for type in types:
+        print(type.get_text())
+        get_num(type.get("href"))
+```
+
+然后获取每一个分类连接中的总页数
+
+![](https://github.com/MouMangTai/moumangtai.github.io/blob/master/img/crawler6-2.jpg?raw=true)
+
+```python
+def get_num(url):
+    web_data = requests.get(url)
+    soup = BeautifulSoup(web_data.text, 'lxml')
+    num = soup.select(".pg span")
+    # 部分页面没有分页只有一页，需要分类一下
+    if(num!=[]):
+        i = int(num[0].get_text().split(" ")[2])
+        for w in range(1, i):
+            print("第"+str(w)+"页")
+            urls = url + "index.php?page={}".format(str(w))
+            get_message_url(urls)
+    else:
+        get_message_url(url)
+```
+
+最后获取每一页中各个比赛的信息
+
+![](https://github.com/MouMangTai/moumangtai.github.io/blob/master/img/crawler6-3.jpg?raw=true)
+
+```python
+def get_message_url(url):
+    web_data = requests.get(url)
+    soup = BeautifulSoup(web_data.text, 'lxml')
+    titles = soup.select(".xld .xs2_tit a")
+    views = soup.select("span.chakan")
+    post_times = soup.select("div.list_info")
+    for title, view, post_time in zip(titles, views, post_times):
+        data = {
+            "标题": title.get_text(),
+            "浏览量": view.get_text().strip(),
+            "发布时间": post_time.get_text().strip().split(" ")[0],
+            "链接": title.get("href")
+        }
+        print(data)
+```
+
+![](https://github.com/MouMangTai/moumangtai.github.io/blob/master/img/crawler6-4.jpg?raw=true)
+
