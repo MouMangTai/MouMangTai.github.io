@@ -1,0 +1,114 @@
+---
+layout:     post
+title:      "Leetcode"
+subtitle:   " \"算法\""
+date:       2019-05-06 16:59:00
+author:     "王琼弟"
+catalog: true
+tags:
+    - 算法
+    - Leetcode
+---
+
+#### [两两交换链表中的节点](https://leetcode-cn.com/problems/swap-nodes-in-pairs/)
+
+给定一个链表，两两交换其中相邻的节点，并返回交换后的链表。
+
+**你不能只是单纯的改变节点内部的值**，而是需要实际的进行节点交换。
+
+**示例:**
+
+```
+给定 1->2->3->4, 你应该返回 2->1->4->3.
+```
+
+```java
+if(head==null||head.next==null) return head;
+		ListNode H = new ListNode(0);
+        ListNode cur = head;
+        ListNode next = head.next;
+        H.next = next;
+        ListNode pre = cur;
+        while(cur!=null) {
+        	if(next.next==null) {
+        		next.next = cur;
+        		cur.next = null;
+        		break;
+        	}else {
+        		if(next.next.next==null) {
+        			cur.next = next.next;
+        			next.next = cur;
+        			break;
+        		}else {
+        			cur.next = next.next.next;
+        			ListNode M = next.next;
+        			next.next = cur;
+        			cur = M;
+        			next = M.next;
+        		}
+        	}
+        }
+        return H.next;
+```
+
+#### [下一个排列](https://leetcode-cn.com/problems/next-permutation/)
+
+实现获取下一个排列的函数，算法需要将给定数字序列重新排列成字典序中下一个更大的排列。
+
+如果不存在下一个更大的排列，则将数字重新排列成最小的排列（即升序排列）。
+
+必须**原地**修改，只允许使用额外常数空间。
+
+以下是一些例子，输入位于左侧列，其相应输出位于右侧列。
+`1,2,3` → `1,3,2`
+`3,2,1` → `1,2,3`
+`1,1,5` → `1,5,1`  
+
+思路：1.从右到左找到i使得nums[i]>nums[j].
+
+2.从右到左找到j使得nums[j]>nums[i].
+
+3.交换nums[i]和nums[j]
+
+4.翻转i的右侧部分
+
+```java
+package 算法;
+
+import java.util.Arrays;
+
+public class nextPermutation {
+	public static void reverse(int []nums,int start,int end) {
+		for(int i=start;i<=(end+start)/2;i++) {
+			int temp = nums[i];
+			nums[i] = nums[end+start-i];
+			nums[end+start-i] = temp;
+		}
+	}
+	public void nextPermutation(int[] nums) {
+        if(nums.length==1||nums.length==0) return ;
+		int i,j ;
+		int flag = 0;
+		for(i=nums.length-2;i>=0;i--) {
+        	if(nums[i]<nums[i+1]) {
+        		flag=1;
+        		break;
+        	}
+        }
+		if(flag==0) {
+			reverse(nums,0,nums.length-1);
+			return;
+		}
+		for(j=nums.length-1;j>=i+1;j--) {
+			if(nums[j]>nums[i]) {
+				int temp = nums[j];
+				nums[j] = nums[i];
+				nums[i] = temp;
+				break;
+			}
+		}
+		reverse(nums,i+1,nums.length-1);
+    }
+}
+```
+
