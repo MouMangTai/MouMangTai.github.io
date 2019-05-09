@@ -14,7 +14,7 @@ tags:
 
 给定一个链表，两两交换其中相邻的节点，并返回交换后的链表。
 
-**你不能只是单纯的改变节点内部的值**，而是需要实际的进行节点交换。
+**你不能只是单纯地改变节点内部的值**，而是需要实际地进行节点交换。
 
 **示例:**
 
@@ -24,7 +24,7 @@ tags:
 
 ```java
 if(head==null||head.next==null) return head;
-		ListNode H = new ListNode(0);
+	    ListNode H = new ListNode(0);
         ListNode cur = head;
         ListNode next = head.next;
         H.next = next;
@@ -73,8 +73,6 @@ if(head==null||head.next==null) return head;
 4.翻转i的右侧部分
 
 ```java
-package 算法;
-
 import java.util.Arrays;
 
 public class nextPermutation {
@@ -143,8 +141,6 @@ public class nextPermutation {
 **思路一**，利用二分查找找到分界点例如[4,5,6,7,0,1,2]中的0，然后判断target所在的区域再次进行二分查找。
 
 ```java
-package 算法;
-
 public class search {
 	public int search(int[] nums, int target) {
 		if(nums.length==0||nums==null) return -1;
