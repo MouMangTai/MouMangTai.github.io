@@ -11,10 +11,20 @@
     <content type="html"><![CDATA[<h2 id="网络编程"><a href="#网络编程" class="headerlink" title="网络编程"></a>网络编程</h2><h3 id="非阻塞和阻塞"><a href="#非阻塞和阻塞" class="headerlink" title="非阻塞和阻塞"></a>非阻塞和阻塞</h3><ol><li>阻塞:线程没有监听到指定的操作执行时，就会停止运行。如ServerSocketChannel.accept()和channel.read(buffer)都是阻塞方法。在单线程的情况下，服务端只能执行一轮accpet一个线程并且read客户端传来的数据，但是会阻塞在下一次的accept。所以阻塞方法只能适用在多线程的情况下。</li><li>非阻塞:各个操作之间没有影响，可以监听多个线程的多个操作。问题在于一直循环cpu占用率很高。</li></ol><h3 id="Selector（基于事件驱动）（观察者模式）"><a href="#Selector（基于事件驱动）（观察者模式）" class="headerlink" title="Selector（基于事件驱动）（观察者模式）"></a>Selector（基于事件驱动）（观察者模式）</h3><p>selector管理多个channel（将channel注册到selector中），并监听这些channel上有没有事件发生（事件通常为accept，connect，read，write），发生了才去处理，避免空转。</p><h3 id="ByteBuffer-和-Channel-常用方法"><a href="#ByteBuffer-和-Channel-常用方法" class="headerlink" title="ByteBuffer 和 Channel 常用方法"></a>ByteBuffer 和 Channel 常用方法</h3><ul><li>读取<br>从channel读取数据填充ByteBuffer。<br><code>int readBytes = channel.read(buffer)</code></li><li>写入<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs arduino">ByteBuffer buffer = ...<br>buffer.<span class="hljs-built_in">put</span>(..);<br>buffer.<span class="hljs-built_in">flip</span>();<span class="hljs-comment">//切换读模式</span><br><br><span class="hljs-keyword">while</span>(buffer.<span class="hljs-built_in">hasRemaining</span>()) &#123;<br>    channel.<span class="hljs-built_in">write</span>(buffer);<br>    <span class="hljs-comment">//channel.write(Charset.defaultCharset().encode(&quot;hello&quot;));</span><br>&#125;<br></code></pre></td></tr></table></figure></li><li>文件传输<br><code> from.transferTo(position,size,to)</code></li></ul>]]></content>
     
     
+    <categories>
+      
+      <category>网络编程</category>
+      
+    </categories>
+    
     
     <tags>
       
-      <tag>网络编程，NIO，NETTY</tag>
+      <tag>网络编程</tag>
+      
+      <tag>NIO</tag>
+      
+      <tag>NETTY</tag>
       
     </tags>
     
