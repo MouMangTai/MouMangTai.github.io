@@ -4,11 +4,30 @@
   
   
   <entry>
-    <title>测试markdown</title>
-    <link href="/2021/10/02/%E6%B5%8B%E8%AF%95markdown/"/>
-    <url>/2021/10/02/%E6%B5%8B%E8%AF%95markdown/</url>
+    <title>网络编程（NIO学习）</title>
+    <link href="/2021/10/03/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%EF%BC%88NIO%E5%AD%A6%E4%B9%A0%EF%BC%89/"/>
+    <url>/2021/10/03/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%EF%BC%88NIO%E5%AD%A6%E4%B9%A0%EF%BC%89/</url>
     
-    <content type="html"><![CDATA[<h2 id="二级标题"><a href="#二级标题" class="headerlink" title="二级标题"></a>二级标题</h2><h3 id="三级标题"><a href="#三级标题" class="headerlink" title="三级标题"></a>三级标题</h3><h4 id="四级标题1"><a href="#四级标题1" class="headerlink" title="四级标题1"></a>四级标题1</h4><p><strong>加粗功能</strong></p><h4 id="四级标题2"><a href="#四级标题2" class="headerlink" title="四级标题2"></a>四级标题2</h4><p><em>斜体</em></p><p><u>下划线</u></p><p><del>删除线</del></p><p><a href="https://gitee.com/">gitee</a></p><p><img src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic16.nipic.com%2F20111008%2F5203963_093910733000_2.jpg&refer=http%3A%2F%2Fpic16.nipic.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1635766467&t=6b496015a7990ca038305b955df3cc9e" alt="外部图片"></p><table><thead><tr><th>1111</th><th>222</th><th>333</th></tr></thead><tbody><tr><td>2221122</td><td>33</td><td>333</td></tr></tbody></table><ul><li>1</li><li>2</li><li>3</li><li>4</li></ul><ol><li>1</li><li>2</li><li>3</li><li>4</li></ol><ul><li><input checked="" disabled="" type="checkbox"> 任务1</li><li><input disabled="" type="checkbox"> 3121</li><li><input checked="" disabled="" type="checkbox"> 3112</li></ul><blockquote><p>作为引用</p><p>是谁</p></blockquote><p><code>System.out.println(&quot;&quot;)</code></p><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-keyword">System</span>.<span class="hljs-keyword">out</span>.println(&quot;&quot;)<br><br><br></code></pre></td></tr></table></figure><p><code>sss</code></p><hr><p>ss </p>]]></content>
+    <content type="html"><![CDATA[<h2 id="网络编程"><a href="#网络编程" class="headerlink" title="网络编程"></a>网络编程</h2><h3 id="非阻塞和阻塞"><a href="#非阻塞和阻塞" class="headerlink" title="非阻塞和阻塞"></a>非阻塞和阻塞</h3><ol><li>阻塞:线程没有监听到指定的操作执行时，就会停止运行。如ServerSocketChannel.accept()和channel.read(buffer)都是阻塞方法。在单线程的情况下，服务端只能执行一轮accpet一个线程并且read客户端传来的数据，但是会阻塞在下一次的accept。所以阻塞方法只能适用在多线程的情况下。</li><li>非阻塞:各个操作之间没有影响，可以监听多个线程的多个操作。问题在于一直循环cpu占用率很高。</li></ol><h3 id="Selector（基于事件驱动）（观察者模式）"><a href="#Selector（基于事件驱动）（观察者模式）" class="headerlink" title="Selector（基于事件驱动）（观察者模式）"></a>Selector（基于事件驱动）（观察者模式）</h3><p>selector管理多个channel（将channel注册到selector中），并监听这些channel上有没有事件发生（事件通常为accept，connect，read，write），发生了才去处理，避免空转。</p><h3 id="ByteBuffer-和-Channel-常用方法"><a href="#ByteBuffer-和-Channel-常用方法" class="headerlink" title="ByteBuffer 和 Channel 常用方法"></a>ByteBuffer 和 Channel 常用方法</h3><ul><li>读取<br>从channel读取数据填充ByteBuffer。<br><code>int readBytes = channel.read(buffer)</code></li><li>写入<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs arduino">ByteBuffer buffer = ...<br>buffer.<span class="hljs-built_in">put</span>(..);<br>buffer.<span class="hljs-built_in">flip</span>();<span class="hljs-comment">//切换读模式</span><br><br><span class="hljs-keyword">while</span>(buffer.<span class="hljs-built_in">hasRemaining</span>()) &#123;<br>    channel.<span class="hljs-built_in">write</span>(buffer);<br>    <span class="hljs-comment">//channel.write(Charset.defaultCharset().encode(&quot;hello&quot;));</span><br>&#125;<br></code></pre></td></tr></table></figure></li><li>文件传输<br><code> from.transferTo(position,size,to)</code></li></ul>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>网络编程，NIO，NETTY</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>测试markdown</title>
+    <link href="/2021/10/02/%E6%B5%8B%E8%AF%95markdown-1/"/>
+    <url>/2021/10/02/%E6%B5%8B%E8%AF%95markdown-1/</url>
+    
+    <content type="html"><![CDATA[<h3 id="测试测试"><a href="#测试测试" class="headerlink" title="测试测试"></a>测试测试</h3>]]></content>
     
     
     
@@ -24,10 +43,10 @@
   
   <entry>
     <title>测试markdown</title>
-    <link href="/2021/10/02/%E6%B5%8B%E8%AF%95markdown-1/"/>
-    <url>/2021/10/02/%E6%B5%8B%E8%AF%95markdown-1/</url>
+    <link href="/2021/10/02/%E6%B5%8B%E8%AF%95markdown/"/>
+    <url>/2021/10/02/%E6%B5%8B%E8%AF%95markdown/</url>
     
-    <content type="html"><![CDATA[<h3 id="测试测试"><a href="#测试测试" class="headerlink" title="测试测试"></a>测试测试</h3>]]></content>
+    <content type="html"><![CDATA[<h2 id="二级标题"><a href="#二级标题" class="headerlink" title="二级标题"></a>二级标题</h2><h3 id="三级标题"><a href="#三级标题" class="headerlink" title="三级标题"></a>三级标题</h3><h4 id="四级标题1"><a href="#四级标题1" class="headerlink" title="四级标题1"></a>四级标题1</h4><p><strong>加粗功能</strong></p><h4 id="四级标题2"><a href="#四级标题2" class="headerlink" title="四级标题2"></a>四级标题2</h4><p><em>斜体</em></p><p><u>下划线</u></p><p><del>删除线</del></p><p><a href="https://gitee.com/">gitee</a></p><p><img src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic16.nipic.com%2F20111008%2F5203963_093910733000_2.jpg&refer=http%3A%2F%2Fpic16.nipic.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1635766467&t=6b496015a7990ca038305b955df3cc9e" alt="外部图片"></p><table><thead><tr><th>1111</th><th>222</th><th>333</th></tr></thead><tbody><tr><td>2221122</td><td>33</td><td>333</td></tr></tbody></table><ul><li>1</li><li>2</li><li>3</li><li>4</li></ul><ol><li>1</li><li>2</li><li>3</li><li>4</li></ol><ul><li><input checked="" disabled="" type="checkbox"> 任务1</li><li><input disabled="" type="checkbox"> 3121</li><li><input checked="" disabled="" type="checkbox"> 3112</li></ul><blockquote><p>作为引用</p><p>是谁</p></blockquote><p><code>System.out.println(&quot;&quot;)</code></p><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-keyword">System</span>.<span class="hljs-keyword">out</span>.println(&quot;&quot;)<br><br><br></code></pre></td></tr></table></figure><p><code>sss</code></p><hr><p>ss </p>]]></content>
     
     
     
