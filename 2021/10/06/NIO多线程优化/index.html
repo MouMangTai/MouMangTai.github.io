@@ -1,0 +1,508 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="wqd">
+  <meta name="keywords" content="">
+  <meta name="description" content="网络编程优化方向  一个boss只监听accept事件，多个woker（数量最好与cpu核数保持一致）监听读写事件。 每个selector和一个线程对应。  核心代码123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NIO多线程优化">
+<meta property="og:url" content="http://example.com/2021/10/06/NIO%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="个人笔记">
+<meta property="og:description" content="网络编程优化方向  一个boss只监听accept事件，多个woker（数量最好与cpu核数保持一致）监听读写事件。 每个selector和一个线程对应。  核心代码123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/moumangtai/pic/raw/master/16334835551232.jpg">
+<meta property="article:published_time" content="2021-10-06T01:19:50.000Z">
+<meta property="article:modified_time" content="2021-10-06T07:01:05.454Z">
+<meta property="article:author" content="wqd">
+<meta property="article:tag" content="网络编程">
+<meta property="article:tag" content="nio">
+<meta property="article:tag" content="netty">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/moumangtai/pic/raw/master/16334835551232.jpg">
+  
+  <title>NIO多线程优化 - 个人笔记</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"｜","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"58oiDq3va5YwodDMMy4Il4ms-gzGzoHsz","app_key":"qOauDkGL2N6qGFRlvCtWSs7w","server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>王琼弟的个人博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="NIO多线程优化">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-10-06 09:19" pubdate>
+        星期三, 十月 6日 2021, 9:19 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.7k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      8 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">NIO多线程优化</h1>
+            
+            <div class="markdown-body">
+              <h2 id="网络编程"><a href="#网络编程" class="headerlink" title="网络编程"></a>网络编程</h2><h3 id="优化方向"><a href="#优化方向" class="headerlink" title="优化方向"></a>优化方向</h3><p><img src="https://gitee.com/moumangtai/pic/raw/master/16334835551232.jpg" srcset="/img/loading.gif" lazyload></p>
+<ol>
+<li>一个boss只监听accept事件，多个woker（数量最好与cpu核数保持一致）监听读写事件。</li>
+<li>每个selector和一个线程对应。</li>
+</ol>
+<h3 id="核心代码"><a href="#核心代码" class="headerlink" title="核心代码"></a>核心代码</h3><figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><code class="hljs arduino"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">String</span>[] args)</span> throws IOException </span>&#123;<br>    Thread.<span class="hljs-built_in">currentThread</span>().<span class="hljs-built_in">setName</span>(<span class="hljs-string">&quot;boss&quot;</span>);<br>    ServerSocketChannel ssc = ServerSocketChannel.<span class="hljs-built_in">open</span>();<br>    ssc.<span class="hljs-built_in">configureBlocking</span>(<span class="hljs-literal">false</span>);<br>    ssc.<span class="hljs-built_in">bind</span>(<span class="hljs-keyword">new</span> <span class="hljs-built_in">InetSocketAddress</span>(<span class="hljs-number">8282</span>));<br><br>    Selector boss = Selector.<span class="hljs-built_in">open</span>();<br>    ssc.<span class="hljs-built_in"><span class="hljs-keyword">register</span></span>(boss, SelectionKey.OP_ACCEPT);<br><br>    <span class="hljs-comment">//创建固定数量的work，而不是每一次连接都创建一个work</span><br>    <span class="hljs-comment">//数量固定为cpu核数</span><br>    Worker[] workers = <span class="hljs-keyword">new</span> Worker[Runtime.<span class="hljs-built_in">getRuntime</span>().<span class="hljs-built_in">availableProcessors</span>()];<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; workers.length; i++) &#123;<br>        workers[i] = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Worker</span>(<span class="hljs-string">&quot;word-&quot;</span>+i);<br>    &#125;<br>    AtomicInteger size = <span class="hljs-keyword">new</span> <span class="hljs-built_in">AtomicInteger</span>();<br><br>    <span class="hljs-comment">//boss线程循环监听连接事件，无连接则阻塞。</span><br>    <span class="hljs-keyword">while</span>(<span class="hljs-literal">true</span>)&#123;<br>        boss.<span class="hljs-built_in">select</span>();<br>        Iterator&lt;SelectionKey&gt; iterator = boss.<span class="hljs-built_in">selectedKeys</span>().<span class="hljs-built_in">iterator</span>();<br>        <span class="hljs-keyword">while</span>(iterator.<span class="hljs-built_in">hasNext</span>())&#123;<br>            SelectionKey key = iterator.<span class="hljs-built_in">next</span>();<br>            iterator.<span class="hljs-built_in">remove</span>();<br>            <span class="hljs-keyword">if</span>(key.<span class="hljs-built_in">isAcceptable</span>())&#123;<br><br>                SocketChannel sc = ssc.<span class="hljs-built_in">accept</span>();<br>                log.<span class="hljs-built_in">debug</span>(<span class="hljs-string">&quot;监听到连接&#123;&#125;&quot;</span>,sc.<span class="hljs-built_in">getRemoteAddress</span>());<br>                sc.<span class="hljs-built_in">configureBlocking</span>(<span class="hljs-literal">false</span>);<br><br>                <span class="hljs-comment">//负载均衡，循环将channel注册到不同的worker上，并执行监听读写事件。</span><br>                <span class="hljs-comment">//固定了worker的数量后，每个worker就局部变成了单线程一个selector管理多个channel。</span><br>                workers[size.<span class="hljs-built_in">getAndIncrement</span>() % workers.length].<span class="hljs-built_in"><span class="hljs-keyword">register</span></span>(sc);<br><br>            &#125;<br>        &#125;<br><br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Worker</span> <span class="hljs-title">implements</span> <span class="hljs-title">Runnable</span>&#123;</span><br>    <span class="hljs-keyword">private</span> Thread thread;<br>    <span class="hljs-keyword">private</span> Selector workSelector;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">String</span> name;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">boolean</span> isStart = <span class="hljs-literal">false</span>;    <span class="hljs-comment">//判断是否已经启动线程</span><br><br>    <span class="hljs-comment">//任务队列，用于两个不同的线程情况下，同步不同的任务之间的顺序</span><br>    <span class="hljs-keyword">private</span> ConcurrentLinkedQueue&lt;Runnable&gt; queue = <span class="hljs-keyword">new</span> ConcurrentLinkedQueue&lt;&gt;();<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Worker</span><span class="hljs-params">(<span class="hljs-keyword">String</span> name)</span> </span>&#123; <span class="hljs-keyword">this</span>.name = name; &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">register</span><span class="hljs-params">(SocketChannel socketChannel)</span> throws IOException </span>&#123;<br>        <span class="hljs-keyword">if</span>(!isStart)&#123;<br>            thread = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Thread</span>(<span class="hljs-keyword">this</span>,name);<br>            workSelector = Selector.<span class="hljs-built_in">open</span>();<br>            thread.<span class="hljs-built_in">start</span>();<br>            isStart = <span class="hljs-literal">true</span>;<br>        &#125;<br>        <span class="hljs-comment">//将一个线程任务放到任务队列中，等到另一个线程中再执行</span><br>        queue.<span class="hljs-built_in">add</span>(()-&gt;&#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                socketChannel.<span class="hljs-built_in"><span class="hljs-keyword">register</span></span>(workSelector,SelectionKey.OP_READ);<br>            &#125; <span class="hljs-built_in"><span class="hljs-keyword">catch</span></span> (ClosedChannelException e) &#123;<br>                e.<span class="hljs-built_in">printStackTrace</span>();<br>            &#125;<br>        &#125;);<br>        workSelector.<span class="hljs-built_in">wakeup</span>();<br>    &#125;<br>    @<span class="hljs-function">Override</span><br><span class="hljs-function">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-comment">//boss线程循环监听读写事件，无连接则阻塞。</span><br>        <span class="hljs-keyword">while</span>(<span class="hljs-literal">true</span>)&#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                workSelector.<span class="hljs-built_in">select</span>();<br>                <span class="hljs-comment">//将任务队列中的任务取出执行</span><br>                Runnable task = queue.<span class="hljs-built_in">poll</span>();<br>                <span class="hljs-keyword">if</span>(task!=null)&#123;<br>                    task.<span class="hljs-built_in">run</span>();<br>                &#125;<br>                Iterator&lt;SelectionKey&gt; iterator = workSelector.<span class="hljs-built_in">selectedKeys</span>().<span class="hljs-built_in">iterator</span>();<br>                <span class="hljs-keyword">while</span>(iterator.<span class="hljs-built_in">hasNext</span>())&#123;<br>                    SelectionKey key = iterator.<span class="hljs-built_in">next</span>();<br>                    iterator.<span class="hljs-built_in">remove</span>();<br><br>                    <span class="hljs-keyword">if</span>(key.<span class="hljs-built_in">isReadable</span>())&#123;<br>                        ByteBuffer buffer = ByteBuffer.<span class="hljs-built_in">allocate</span>(<span class="hljs-number">16</span>);<br>                        SocketChannel channel = (SocketChannel) key.<span class="hljs-built_in">channel</span>();<br>                        <span class="hljs-keyword">int</span> read = channel.<span class="hljs-built_in">read</span>(buffer);<br>                        <span class="hljs-keyword">if</span>(read==<span class="hljs-number">-1</span>)&#123;<br>                            key.<span class="hljs-built_in">cancel</span>();<br>                        &#125;<br>                        System.out.<span class="hljs-built_in">println</span>(read);<br>                    &#125;<br>                &#125;<br>            &#125; <span class="hljs-built_in"><span class="hljs-keyword">catch</span></span> (IOException e) &#123;<br>                e.<span class="hljs-built_in">printStackTrace</span>();<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">网络编程</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">网络编程</a>
+                    
+                      <a class="hover-with-bg" href="/tags/nio/">nio</a>
+                    
+                      <a class="hover-with-bg" href="/tags/netty/">netty</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/10/04/%E3%80%8A%E6%9C%88%E4%B8%8B%E7%A5%9E%E8%AF%9D%E3%80%8B%E8%AF%BB%E5%90%8E%E6%84%9F/">
+                        <span class="hidden-mobile">《月下神话》读后感</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div class="disqus" style="width:100%">
+    <div id="disqus_thread"></div>
+    
+      <script type="text/javascript">
+        var disqus_config = function() {
+          this.page.url = 'http://example.com/2021/10/06/NIO%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%BC%98%E5%8C%96/';
+          this.page.identifier = '/2021/10/06/NIO%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%BC%98%E5%8C%96/';
+        };
+        Fluid.utils.loadComments('#disqus_thread', function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//' + 'fluid' + '.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', new Date());
+          (d.head || d.body).appendChild(s);
+        });
+      </script>
+    
+    <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
