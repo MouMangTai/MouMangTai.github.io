@@ -16,15 +16,15 @@
   <meta name="description" content="">
   <meta name="author" content="wqd">
   <meta name="keywords" content="">
-  <meta name="description" content="网络编程">
+  <meta name="description" content="网络编程核心代码服务端1234567891011121314151617181920212223242526&#x2F;&#x2F;服务器端的启动器，负责组装netty组件，启动服务器new ServerBootstrap()&#x2F;&#x2F;多个组，每个组包含Boss和worker(selector+thread).group(new NioEventLoopGroup())&#x2F;&#x2F;选择channel的具体实现.channel(Ni">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Netty入门">
 <meta property="og:url" content="http://example.com/2021/10/07/Netty%E5%85%A5%E9%97%A8/index.html">
 <meta property="og:site_name" content="个人笔记">
-<meta property="og:description" content="网络编程">
+<meta property="og:description" content="网络编程核心代码服务端1234567891011121314151617181920212223242526&#x2F;&#x2F;服务器端的启动器，负责组装netty组件，启动服务器new ServerBootstrap()&#x2F;&#x2F;多个组，每个组包含Boss和worker(selector+thread).group(new NioEventLoopGroup())&#x2F;&#x2F;选择channel的具体实现.channel(Ni">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-10-07T01:19:50.000Z">
-<meta property="article:modified_time" content="2021-10-06T13:48:48.951Z">
+<meta property="article:modified_time" content="2021-10-09T14:02:31.109Z">
 <meta property="article:author" content="wqd">
 <meta property="article:tag" content="网络编程">
 <meta property="article:tag" content="nio">
@@ -198,7 +198,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4 字
+      2.4k 字
     </span>
   
 
@@ -207,7 +207,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      1 分钟
+      7 分钟
     </span>
   
 
@@ -239,7 +239,31 @@
             <h1 style="display: none">Netty入门</h1>
             
             <div class="markdown-body">
-              <h2 id="网络编程"><a href="#网络编程" class="headerlink" title="网络编程"></a>网络编程</h2><h3 id=""><a href="#" class="headerlink" title=""></a></h3>
+              <h2 id="网络编程"><a href="#网络编程" class="headerlink" title="网络编程"></a>网络编程</h2><h3 id="核心代码"><a href="#核心代码" class="headerlink" title="核心代码"></a>核心代码</h3><h4 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h4><figure class="highlight aspectj"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs aspectj"><span class="hljs-comment">//服务器端的启动器，负责组装netty组件，启动服务器</span><br><span class="hljs-keyword">new</span> ServerBootstrap()<br><span class="hljs-comment">//多个组，每个组包含Boss和worker(selector+thread)</span><br>.group(<span class="hljs-keyword">new</span> NioEventLoopGroup())<br><span class="hljs-comment">//选择channel的具体实现</span><br>.channel(NioServerSocketChannel.class)<br><span class="hljs-comment">//决定worker将来能执行哪些操作</span><br>.childHandler(<br>        <span class="hljs-comment">//初始化通道，负责添加别的handler（操作）</span><br>        <span class="hljs-keyword">new</span> ChannelInitializer&lt;NioSocketChannel&gt;() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">initChannel</span><span class="hljs-params">(NioSocketChannel nioSocketChannel)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;<br>        <span class="hljs-comment">//添加具体的handler</span><br>        nioSocketChannel.pipeline().addLast(<span class="hljs-keyword">new</span> StringDecoder());<span class="hljs-comment">//将ByteBuf 转换为字符串</span><br>        nioSocketChannel.pipeline().addLast(<span class="hljs-keyword">new</span> ChannelInboundHandlerAdapter()&#123; <span class="hljs-comment">//自定义handler</span><br><br>            <span class="hljs-comment">//读事件</span><br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">channelRead</span><span class="hljs-params">(ChannelHandlerContext ctx, Object msg)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;<br>                System.out.println(msg);<br>            &#125;<br>        &#125;);<br>    &#125;<br>&#125;)<br><span class="hljs-comment">//绑定监听端口</span><br>.bind(<span class="hljs-number">8282</span>);<br></code></pre></td></tr></table></figure>
+<h4 id="客户端-同步去处理结果）"><a href="#客户端-同步去处理结果）" class="headerlink" title="客户端(同步去处理结果）"></a>客户端(同步去处理结果）</h4><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">EventLoopGroup group = <span class="hljs-keyword">new</span> <span class="hljs-constructor">NioEventLoopGroup()</span>;<br>Channel channel = <span class="hljs-keyword">new</span> <span class="hljs-constructor">Bootstrap()</span><br>        .group(group)<br>        .channel(<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">NioSocketChannel</span>.</span></span><span class="hljs-keyword">class</span>)<br>        .handler(<span class="hljs-keyword">new</span> ChannelInitializer&lt;NioSocketChannel&gt;<span class="hljs-literal">()</span> &#123;<br>            @Override<br>            protected void init<span class="hljs-constructor">Channel(NioSocketChannel <span class="hljs-params">nioSocketChannel</span>)</span> throws Exception &#123;<br>                nioSocketChannel.pipeline<span class="hljs-literal">()</span>.add<span class="hljs-constructor">Last(<span class="hljs-params">new</span> StringEncoder()</span>);<br>            &#125;<br>        &#125;)<br>        <span class="hljs-comment">//connect是异步非阻塞的，main线程发起了调用，真正执行connect是nio线程。所以下一步必须执行sync方法阻塞等待连接建立。</span><br>        <span class="hljs-comment">//否则直接跳过阻塞获取到channel，此时还未连接就会出问题。</span><br>        .connect(<span class="hljs-keyword">new</span> <span class="hljs-constructor">InetSocketAddress(<span class="hljs-string">&quot;localhost&quot;</span>, 8282)</span>)<br>        <span class="hljs-comment">//1.使用sycn方法同步处理结果，阻塞方法，直到连接建立</span><br>        .sync<span class="hljs-literal">()</span><br>        <span class="hljs-comment">//获取channel连接对象去读写</span><br>        .channel<span class="hljs-literal">()</span>;<br><br><span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>)&#123;<br>    Scanner scanner = <span class="hljs-keyword">new</span> <span class="hljs-constructor">Scanner(System.<span class="hljs-params">in</span>)</span>;<br>    String s = scanner.next<span class="hljs-constructor">Line()</span>;<br>    <span class="hljs-keyword">if</span>(s.equals(<span class="hljs-string">&quot;q&quot;</span>))&#123;<br>        <span class="hljs-comment">//同理connect方法，channel的close方法也是异步非阻塞的，需要sync同步处理结果，直到连接断开。</span><br>        ChannelFuture closeFuture = channel.close<span class="hljs-literal">()</span>;<br>        closeFuture.sync<span class="hljs-literal">()</span>;<br>        break;<br>    &#125;<span class="hljs-keyword">else</span>&#123;<br>        channel.write<span class="hljs-constructor">AndFlush(<span class="hljs-params">s</span>)</span>;<br>    &#125;<br>&#125;<br><span class="hljs-comment">//虽然主线程的连接断开了，但是还有nio的线程需要优雅的关闭。</span><br>group.shutdown<span class="hljs-constructor">Gracefully()</span>;<br></code></pre></td></tr></table></figure>
+
+<h3 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h3><ol>
+<li>handler为一道工序，pipeline为流水线，多道工序合在一起就是一个流水线。</li>
+<li>每次有一个事件发生，pipeLine就会负责发布事件，传播给每个handler，handler对自己感兴趣的事件进行处理。</li>
+<li>eventLoop为处理数据的工人，负责管理多个channel的io操作，并且一旦工人负责了某个channel就要负责到底，即绑定。（能够保证线程安全）</li>
+<li>eventLoop除了io操作还可以进行任务处理，并且有任务队列。</li>
+<li>eventLoop按照pipeline里的handler顺序去处理数据。</li>
+</ol>
+<h3 id="ByteBuf"><a href="#ByteBuf" class="headerlink" title="ByteBuf"></a>ByteBuf</h3><h4 id="直接内存和堆内存"><a href="#直接内存和堆内存" class="headerlink" title="直接内存和堆内存"></a>直接内存和堆内存</h4><ol>
+<li>直接内存创建和销毁的代价昂贵，但是读写性能高，适合配合池化功能。</li>
+<li>直接内存对GC压力小，不受JVM垃圾回收管理，但要注意主动释放。</li>
+</ol>
+<h4 id="池化和非池化"><a href="#池化和非池化" class="headerlink" title="池化和非池化"></a>池化和非池化</h4><ol>
+<li>池化可以重用ByteBuf实例，高并发下，池化功能更节约内存，减少内存溢出的可能。</li>
+<li>没有池化，每次都要创建新的实例，这种方式对直接内存代价太高，对于堆内存会增加GC压力。</li>
+</ol>
+<h4 id="内存回收"><a href="#内存回收" class="headerlink" title="内存回收"></a>内存回收</h4><ol>
+<li>UnpooledHeapByteBuf使用JVM内存，只需要等待GC回收内存。</li>
+<li>UnpooledDirectByteBuf，需要特殊的方法来回收。</li>
+<li>PooledByteBuf采用的池化的机制，需要更复杂的规则来回收。</li>
+<li>因为pipeline的存在，一般需要将ByteBuf传递给下一个handler，如果在finally中release了，就失去了传递性，所以谁是ByteBuf(如果某个handler对ByteBuf进行了转换也算）最后的使用者，谁来负责release。</li>
+</ol>
+<h4 id="零拷贝"><a href="#零拷贝" class="headerlink" title="零拷贝"></a>零拷贝</h4>
             </div>
             <hr>
             <div>
