@@ -26,7 +26,7 @@
 <meta property="og:description" content="池化可以重用ByteBuf实例，高并发下，池化功能更节约内存，减少内存溢出的可能。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-10-10T01:19:50.000Z">
-<meta property="article:modified_time" content="2021-10-10T13:47:46.991Z">
+<meta property="article:modified_time" content="2021-10-11T14:17:40.944Z">
 <meta property="article:author" content="wqd">
 <meta property="article:tag" content="网络编程">
 <meta property="article:tag" content="nio">
@@ -200,7 +200,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.1k 字
+      5.7k 字
     </span>
   
 
@@ -209,7 +209,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      16 分钟
+      18 分钟
     </span>
   
 
@@ -291,9 +291,9 @@
 <li>本质上是因为TCP是流式协议，消息无边界。</li>
 <li>为了减少传输中的消耗，需要用算法(nagle算法，尽可能多的传输数据）进行处理而导致粘包，因为TCP传输时需要给报文加上若干字节的头部信息，即使是1个字节的信息。</li>
 <li>MSS限制，当发送的数据超过MSS限制后，会将数据切分发送，造成半包。</li>
-<li>应用层:接收方的ByteBuf设置的太大太小。<h4 id="滑动窗口"><a href="#滑动窗口" class="headerlink" title="滑动窗口"></a>滑动窗口</h4></li>
+<li>应用层:接收方的ByteBuf设置的太大太小。</li>
 </ul>
-<ol>
+<h4 id="滑动窗口"><a href="#滑动窗口" class="headerlink" title="滑动窗口"></a>滑动窗口</h4><ol>
 <li>设置一个滑动窗口大小，在窗口以内的数据可以不等待服务器响应的结果就可以直接发送。在应答未到达之前，窗口必须停止滑动。接收方也要维护一个窗口，只有落在窗口内的数据才能被接受。</li>
 <li>滑动窗口起着缓冲区的作用和流量控制的作用。</li>
 </ol>
@@ -303,7 +303,17 @@
 <li>分隔符来界定消息的边界，LineBasedFrameDecoder(maxLength),用\n和\r\n定界。DelimiterBasedFrameDecoder自定义分隔符。底层实现还是一个个字节去找分隔符，效率较低。</li>
 <li>基于长度字段的LTC解码器。LengthFieldBasedFrameDecoder(最大值，长度偏移量，长度字段的长度，跳过多少字节，去掉头部多少字节)。</li>
 </ol>
-<h3 id="协议的设计与解析"><a href="#协议的设计与解析" class="headerlink" title="协议的设计与解析"></a>协议的设计与解析</h3>
+<h3 id="协议的设计与解析"><a href="#协议的设计与解析" class="headerlink" title="协议的设计与解析"></a>协议的设计与解析</h3><h4 id="redis协议"><a href="#redis协议" class="headerlink" title="redis协议"></a>redis协议</h4><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">final static byte<span class="hljs-literal">[]</span> LINE = &#123;<span class="hljs-number">13</span>,<span class="hljs-number">10</span>&#125;;<br>public static void send(ByteBuf buf,String command)&#123;<br>    String<span class="hljs-literal">[]</span> words = command.split(<span class="hljs-string">&quot; &quot;</span>);<br>    buf.write<span class="hljs-constructor">Bytes((<span class="hljs-string">&quot;*&quot;</span>+<span class="hljs-params">words</span>.<span class="hljs-params">length</span>)</span>.get<span class="hljs-constructor">Bytes()</span>);<br>    buf.write<span class="hljs-constructor">Bytes(LINE)</span>;<br>    <span class="hljs-keyword">for</span>(String word:words)&#123;<br>        buf.write<span class="hljs-constructor">Bytes((<span class="hljs-string">&quot;$&quot;</span>+<span class="hljs-params">word</span>.<span class="hljs-params">length</span>()</span>).get<span class="hljs-constructor">Bytes()</span>);<br>        buf.write<span class="hljs-constructor">Bytes(LINE)</span>;<br>        buf.write<span class="hljs-constructor">Bytes(<span class="hljs-params">word</span>.<span class="hljs-params">getBytes</span>()</span>);<br>        buf.write<span class="hljs-constructor">Bytes(LINE)</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h4 id="http协议"><a href="#http协议" class="headerlink" title="http协议"></a>http协议</h4><h4 id="自定义协议"><a href="#自定义协议" class="headerlink" title="自定义协议"></a>自定义协议</h4><h5 id="要素"><a href="#要素" class="headerlink" title="要素"></a>要素</h5><ol>
+<li>魔数: 用来第一时间判定是否为无效数据包。</li>
+<li>版本号: 可以支持协议的升级</li>
+<li>序列化算法: 消息正文到底采用哪种序列化反序列化方式，如json，protobuf。</li>
+<li>指令类型：登陆，注册，单聊，群聊等业务相关。</li>
+<li>请求序号：为了双工通信，提供异步能力。</li>
+<li>正文长度。</li>
+<li>消息正文：Json，xml，对象流等。</li>
+</ol>
+<h4 id=""><a href="#" class="headerlink" title=""></a></h4><h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3>
             </div>
             <hr>
             <div>
@@ -340,6 +350,12 @@
                 <div class="post-prevnext">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2021/10/12/%E5%A4%8D%E6%9D%82%E4%BB%B7%E6%A0%BC%E7%9A%84%E8%AE%BE%E8%AE%A1/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">复杂价格的设计</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
